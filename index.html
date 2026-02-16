@@ -1,13 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WeatherTravel</title>
-    <script src="js/app.js"></script>
     <link href="css/output.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="assets/logo.jpg" alt="WeatherTravel - logo">
+    <link rel="icon" type="image/png" href="assets/logo.jpg">
+    <script src="js/config.js"></script>
+    <script src="js/app.js" defer></script>
 </head>
+
 <body>
 
     <header>
@@ -18,15 +21,42 @@
 
     <main>
         <article>
-            <h1 class="text-2xl font-bold">WeatherTravel</h1>
+            <h1>WeatherTravel</h1>
             <p class="description">Consulta el pronóstico del tiempo de cualquier ciudad del mundo al instante.</p>
+
+            <section class="search-container">
+                <input type="text" id="city-input" placeholder="Escribe el nombre de una ciudad">
+                <button id="search-btn">Buscar</button>
+            </section>
+
+
+            <section id="options-container" class="hidden">
+                <p>Se encontraron varias ciudades. Selecciona una:</p>
+                <div id="cities-list"></div>
+            </section>
+
+            <p id="p-error" class="hidden"></p>
+
+            <section id="weather-info" class="hidden">
+                <h2 id="city-name">--</h2>
+
+                <div class="temp-container">
+                    <img id="weather-icon" src="" alt="Icono del clima">
+                    <p><span id="temp-val">--</span>°C</p>
+                </div>
+
+                <p id="weather-desc">--</p>
+
+                <div id="data-source"></div>
+            </section>
+
         </article>
     </main>
 
     <footer>
         <p>Desarrollado por <strong>Jorge Luis</strong></p>
     </footer>
-
-    <script src="js/app.js"></script>
+    
 </body>
+
 </html>
