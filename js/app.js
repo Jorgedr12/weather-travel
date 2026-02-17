@@ -72,24 +72,29 @@ function mostrarOpciones(ciudades) {
 
 async function obtenerClima(lat, lon, nombreCiudad) {
     try {
-        const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
-        const response = await fetch(weatherUrl);
+        const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
+        const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
 
-        console.log("URL de la consulta:", weatherUrl);
-        console.log("Respuesta del servidor:", response);
+        const [currentResponse, forecastResponse] = await Promise.all([
+            fetch(currentUrl),
+            fetch(forecastUrl)
+        ]);
 
-        if (!response.ok) {
-            throw new Error("No se pudo obtener el clima");
+        if (!currentResponse.ok || !forecastResponse.ok) {
+            throw new Error("No se pudo obtener la información del clima");
         }
 
-        const data = await response.json();
+        const currentData = await currentResponse.json();
+        const forecastData = await forecastResponse.json();
 
         document.getElementById('city-name').textContent = nombreCiudad;
-        document.getElementById('temp-val').textContent = Math.round(data.main.temp);
-        document.getElementById('weather-desc').textContent = data.weather[0].description;
+        document.getElementById('temp-val').textContent = Math.round(currentData.main.temp);
+        document.getElementById('weather-desc').textContent = currentData.weather[0].description;
 
-        const iconCode = data.weather[0].icon;
+        const iconCode = currentData.weather[0].icon;
         document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+
+        mostrarPronostico(forecastData);
 
         divClima.classList.remove('hidden');
 
@@ -97,4 +102,28 @@ async function obtenerClima(lat, lon, nombreCiudad) {
         pError.textContent = error.message;
         pError.classList.remove('hidden');
     }
+}
+
+function mostrarPronostico(data) {
+    const contenedor = document.getElementById('forecast-container');
+    
+    const listaReducida = data.list.filter(item => item.dt_txt.includes("12:00:00"));
+
+    let contenidoHTML = "";
+
+    listaReducida.forEach(dia => {
+        const fecha = new Date(dia.dt * 1000).toLocaleDateString('es-ES', { weekday: 'short' });
+        const temp = Math.round(dia.main.temp);
+        const icono = dia.weather[0].icon;
+
+        contenidoHTML += `
+            <div class="forecast-card">
+                <p>${fecha}</p>
+                <img src="https://openweathermap.org/img/wn/${icono}.png">
+                <p>${temp}°C</p>
+            </div>`;
+    });
+
+    contenedor.innerHTML = contenidoHTML;
+    contenedor.classList.remove('hidden');
 }
