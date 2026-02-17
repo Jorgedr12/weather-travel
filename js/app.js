@@ -7,11 +7,33 @@ const divClima = document.getElementById('weather-info');
 
 
 apiKey = CONFIG.API_KEY;
+let tiempoEspera;
 
 botonBuscar.addEventListener('click', buscarCiudades);
 
+inputCiudad.addEventListener('input', () => {
+    clearTimeout(tiempoEspera);
+
+    const ciudad = inputCiudad.value.trim();
+
+    if (ciudad.length<3) {
+        optionsContainer.classList.add('hidden');
+        return;
+    }
+    tiempoEspera = setTimeout(() => {
+        buscarCiudades();
+    }, 800);
+});
+
 async function buscarCiudades() {
     const ciudad = inputCiudad.value.trim();
+
+    if (ciudad.length < 3) {
+        pError.textContent = "Por favor, ingresa al menos 3 caracteres para buscar.";
+        pError.classList.remove('hidden');
+        optionsContainer.classList.add('hidden');
+        return;
+    }
 
     if (!ciudad) {
         pError.textContent = "Por favor, ingresa el nombre de una ciudad.";
@@ -20,10 +42,6 @@ async function buscarCiudades() {
     }
 
     try {
-        pError.classList.add('hidden');
-        optionsContainer.classList.add('hidden');
-        divClima.classList.add('hidden');
-        citiesList.innerHTML = "";
 
         const geoUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${ciudad}&limit=5&appid=${apiKey}`;
 
@@ -36,7 +54,8 @@ async function buscarCiudades() {
         const ciudades = await response.json();
 
         if (ciudades.length === 0) {
-            throw new Error("No se encontraron ciudades con ese nombre");
+            optionsContainer.classList.add('hidden');
+            return;
         }
 
         mostrarOpciones(ciudades);
@@ -48,6 +67,7 @@ async function buscarCiudades() {
 }
 
 function mostrarOpciones(ciudades) {
+    citiesList.innerHTML = "";
     optionsContainer.classList.remove('hidden');
 
     ciudades.forEach(lugar => {
@@ -62,6 +82,7 @@ function mostrarOpciones(ciudades) {
         btn.style.cursor = "pointer";
 
         btn.onclick = () => {
+            inputCiudad.value = lugar.name;
             optionsContainer.classList.add('hidden');
             obtenerClima(lugar.lat, lugar.lon, nombreMostrar);
         };
