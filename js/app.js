@@ -16,7 +16,7 @@ inputCiudad.addEventListener('input', () => {
 
     const ciudad = inputCiudad.value.trim();
 
-    if (ciudad.length<3) {
+    if (ciudad.length < 3) {
         optionsContainer.classList.add('hidden');
         return;
     }
@@ -119,6 +119,11 @@ async function obtenerClima(lat, lon, nombreCiudad) {
 
         divClima.classList.remove('hidden');
 
+        const climaId = currentData.weather[0].id;
+        generarRecomendacion(climaId);
+
+        divClima.classList.remove('hidden');
+
     } catch (error) {
         pError.textContent = error.message;
         pError.classList.remove('hidden');
@@ -127,7 +132,7 @@ async function obtenerClima(lat, lon, nombreCiudad) {
 
 function mostrarPronostico(data) {
     const contenedor = document.getElementById('forecast-container');
-    
+
     const listaReducida = data.list.filter(item => item.dt_txt.includes("12:00:00"));
 
     let contenidoHTML = "";
@@ -147,4 +152,31 @@ function mostrarPronostico(data) {
 
     contenedor.innerHTML = contenidoHTML;
     contenedor.classList.remove('hidden');
+}
+
+function generarRecomendacion(climaId) {
+    const recContainer = document.getElementById('recommendations');
+    const recText = document.getElementById('rec-text');
+
+    let recomendacion = "";
+
+    if (climaId >= 200 && climaId < 300) {
+        recomendacion = "Tormenta electrica";
+    } else if (climaId >= 300 && climaId < 400) {
+        recomendacion = "Llovizna ligera";
+    } else if (climaId >= 500 && climaId < 600) {
+        recomendacion = "Lluvia moderada";
+    } else if (climaId >= 600 && climaId < 700) {
+        recomendacion = "Nieve";
+    } else if (climaId >= 700 && climaId < 800) {
+        recomendacion = "Neblina";
+    } else if (climaId === 800) {
+        recomendacion = "Cielo despejado";
+    } else if (climaId > 800 && climaId < 900) {
+        recomendacion = "Nubes";
+    } else {
+        recomendacion = "Clima desconocido";
+    }
+    recText.textContent = recomendacion;
+    recContainer.classList.remove('hidden');
 }
