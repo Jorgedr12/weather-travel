@@ -112,15 +112,20 @@ async function obtenerClima(lat, lon, nombreCiudad) {
         document.getElementById('temp-val').textContent = Math.round(currentData.main.temp);
         document.getElementById('weather-desc').textContent = currentData.weather[0].description;
 
+        document.getElementById('humidity-val').textContent = `${currentData.main.humidity}%`;
+
+        const velocidadkmh = (currentData.wind.speed * 3.6).toFixed(1);
+        document.getElementById('wind-val').textContent = `${velocidadkmh} km/h`;
+
         const iconCode = currentData.weather[0].icon;
-        document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+        document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${iconCode}@4x.png`;
 
         mostrarPronostico(forecastData);
 
         divClima.classList.remove('hidden');
 
         const climaId = currentData.weather[0].id;
-        generarRecomendacion(climaId);
+        generarRecomendacion(climaId, iconCode);
 
         divClima.classList.remove('hidden');
 
@@ -132,51 +137,127 @@ async function obtenerClima(lat, lon, nombreCiudad) {
 
 function mostrarPronostico(data) {
     const contenedor = document.getElementById('forecast-container');
+    
+    contenedor.innerHTML = "";
+    contenedor.className = "flex flex-col w-full mt-6"; 
 
-    const listaReducida = data.list.filter(item => item.dt_txt.includes("12:00:00"));
+    let diasAgrupados = {};
+    
+    for (let i = 0; i < data.list.length; i++) {
+        let item = data.list[i];
+        let fecha = item.dt_txt.split(' ')[0];
+
+        if (!diasAgrupados[fecha]) {
+            diasAgrupados[fecha] = [];
+        }
+        diasAgrupados[fecha].push(item);
+    }
+
+    let fechas = Object.keys(diasAgrupados);
+    
+    let cantidadDias = fechas.length < 5 ? fechas.length : 5;
 
     let contenidoHTML = "";
 
-    listaReducida.forEach(dia => {
-        const fecha = new Date(dia.dt * 1000).toLocaleDateString('es-ES', { weekday: 'short' });
-        const temp = Math.round(dia.main.temp);
-        const icono = dia.weather[0].icon;
+    for (let i = 0; i < cantidadDias; i++) {
+        let fechaActual = fechas[i];
+        let datosDelDia = diasAgrupados[fechaActual];
+
+        let maximo = -100;
+        let minimo = 100;
+
+        for (let j = 0; j < datosDelDia.length; j++) {
+            let tempMaxActual = datosDelDia[j].main.temp_max;
+            let tempMinActual = datosDelDia[j].main.temp_min;
+            
+            if (tempMaxActual > maximo) maximo = tempMaxActual;
+            if (tempMinActual < minimo) minimo = tempMinActual;
+        }
+
+        let tempMax = Math.round(maximo);
+        let tempMin = Math.round(minimo);
+
+        let indiceMedio = Math.floor(datosDelDia.length / 2);
+        let info = datosDelDia[indiceMedio];
+
+        let fechaObj = new Date(info.dt * 1000);
+        let diaSemana = fechaObj.toLocaleDateString('es-ES', { weekday: 'short' });
+        let diaNumero = fechaObj.getDate();
+        let fechaFormateada = `${diaSemana} ${diaNumero}`;
+
+        let icono = info.weather[0].icon;
+        let descripcion = info.weather[0].description;
 
         contenidoHTML += `
-            <div class="forecast-card">
-                <p>${fecha}</p>
-                <img src="https://openweathermap.org/img/wn/${icono}.png">
-                <p>${temp}°C</p>
-            </div>`;
-    });
+            <div class="flex items-center justify-between py-4 border-b border-gray-100 hover:bg-gray-50 transition-colors px-2">
+                
+                <div class="w-16 text-gray-700 font-medium capitalize text-sm">
+                    ${fechaFormateada}
+                </div>
 
+                <div class="flex items-center gap-1 w-20 text-sm">
+                    <span class="font-bold text-gray-900">${tempMax}°</span>
+                    <span class="text-gray-400">/</span>
+                    <span class="text-gray-500">${tempMin}°</span>
+                </div>
+
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <img src="https://openweathermap.org/img/wn/${icono}.png" alt="icono" class="w-8 h-8">
+                    <span class="text-gray-700 text-sm capitalize truncate hidden sm:block">${descripcion}</span>
+                </div>
+
+            </div>`;
+    }
+
+    // Insertamos todo el HTML generado al final
     contenedor.innerHTML = contenidoHTML;
     contenedor.classList.remove('hidden');
 }
 
-function generarRecomendacion(climaId) {
+function generarRecomendacion(climaId, icono) {
     const recContainer = document.getElementById('recommendations');
     const recText = document.getElementById('rec-text');
 
-    let recomendacion = "";
+    const esDeDia = icono.includes('d'); 
+    
+    let recomendaciones = [];
 
     if (climaId >= 200 && climaId < 300) {
-        recomendacion = "Tormenta electrica";
-    } else if (climaId >= 300 && climaId < 400) {
-        recomendacion = "Llovizna ligera";
-    } else if (climaId >= 500 && climaId < 600) {
-        recomendacion = "Lluvia moderada";
+        // Tormenta
+        recomendaciones = ["Tormenta eléctrica", "Desconecta aparatos", "Evita ventanas"];
+        
+    } else if (climaId >= 300 && climaId < 600) {
+        // Lluvia
+        recomendaciones = ["Pavimento resbaladizo", "Lleva paraguas", esDeDia ? "Tráfico lento" : "Usa luces altas"];
+
     } else if (climaId >= 600 && climaId < 700) {
-        recomendacion = "Nieve";
+        // Nieve
+        recomendaciones = ["Nieve", "Abrigo térmico", esDeDia ? "Gafas de sol (reflejo)" : "Extrema precaución al manejar"];
+
     } else if (climaId >= 700 && climaId < 800) {
-        recomendacion = "Neblina";
+        // Neblina
+        recomendaciones = ["Neblina", "Luces antiniebla", esDeDia ? "Conduce despacio" : "Hazte visible al cruzar"];
+
     } else if (climaId === 800) {
-        recomendacion = "Cielo despejado";
+        // Cielo despejado
+        if (esDeDia) {
+            recomendaciones = ["Cielo despejado", "Usa bloqueador solar", "Gafas de sol"];
+        } else {
+            recomendaciones = ["Noche despejada", "Suéter ligero", "Buen momento para ver estrellas"];
+        }
+
     } else if (climaId > 800 && climaId < 900) {
-        recomendacion = "Nubes";
+        // Nubes
+        if (esDeDia) {
+            recomendaciones = ["Nublado", "Clima agradable", "Ideal para caminar"];
+        } else {
+            recomendaciones = ["Noche nublada", "Posible humedad", "Lleva una chaqueta"];
+        }
+
     } else {
-        recomendacion = "Clima desconocido";
+        recomendaciones = ["Clima desconocido"];
     }
-    recText.textContent = recomendacion;
+
+    recText.innerHTML = recomendaciones.map(rec => `<p class="flex items-center gap-2">• ${rec}</p>`).join('');
     recContainer.classList.remove('hidden');
 }
