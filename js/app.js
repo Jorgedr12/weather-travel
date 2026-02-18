@@ -189,8 +189,6 @@ async function obtenerClima(lat, lon, nombreCiudad) {
         return; 
     }
 
-    console.log(navigator.onLine)
-
     try {
         pError.classList.add('hidden');
         const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=es`;
@@ -329,8 +327,6 @@ function generarRecomendacion(climaId, icono) {
     const recText = document.getElementById('rec-text');
     const esDeDia = icono.includes('d');
     const grupoClima = Math.floor(climaId / 100);
-
-    console.log("Clima ID:", climaId, "Grupo:", grupoClima, "Es de día:", esDeDia);
 
     let recomendaciones = [];
 
