@@ -21,7 +21,7 @@
 
 1. **Clonar el repositorio:**
    ```bash
-   git clone [https://github.com/Jorgedr12/weather-travel.git](https://github.com/Jorgedr12/weather-travel.git)
+   git clone https://github.com/Jorgedr12/weather-travel.git
    cd WeatherAPI
     ```
 
